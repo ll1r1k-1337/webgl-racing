@@ -21,6 +21,34 @@
   #hud .finish { color: #ff0; font-size: 18px; margin-top: 8px; text-shadow: 0 0 12px #ff0, 0 0 24px #f80; animation: pulse .5s infinite alternate; }
   @keyframes pulse { from { opacity: .7; } to { opacity: 1; } }
 
+  /* Race Leaderboard (top-right) */
+  #race-leaderboard {
+    position: fixed; top: 12px; right: 12px;
+    font-size: 9px; color: #ddd; z-index: 10;
+    pointer-events: none; display: none;
+    background: rgba(5, 0, 20, 0.65);
+    border: 1px solid #30006a;
+    padding: 6px 8px; min-width: 120px;
+    text-shadow: 0 0 4px #08f;
+  }
+  #race-leaderboard .lb-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 0; white-space: nowrap;
+  }
+  #race-leaderboard .lb-row.lb-local {
+    color: #0ff; font-weight: bold;
+    text-shadow: 0 0 8px #0ff;
+  }
+  #race-leaderboard .lb-pos {
+    width: 14px; text-align: right; color: #f0f;
+    font-size: 8px;
+  }
+  #race-leaderboard .lb-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+  }
+  #race-leaderboard .lb-name { font-size: 8px; }
+
   /* Scanline overlay */
   #overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -157,6 +185,7 @@
 <canvas id="c"></canvas>
 <div id="overlay"></div>
 <div id="hud"></div>
+<div id="race-leaderboard"></div>
 
 <script type="importmap">
 {
@@ -167,7 +196,8 @@
 </script>
 <script type="module">
 import { initGame, destroyGame, getPlayerState, spawnRemoteCar, updateRemoteCar,
-         removeRemoteCar, toggleCRT, setLapCallback, setFinishCallback, mapJsonToTrackData } from './src/game.js';
+         removeRemoteCar, toggleCRT, setLapCallback, setFinishCallback, mapJsonToTrackData,
+         setLeaderboardEl, setLocalPlayerId, setPlayerInfoMap } from './src/game.js';
 import { Network } from './src/network.js';
 import { createUI, showScreen, hideAllScreens, setCallbacks,
          showConnectError, clearConnectError, updateLobby,
@@ -175,6 +205,7 @@ import { createUI, showScreen, hideAllScreens, setCallbacks,
 
 const canvas = document.getElementById('c');
 const hud    = document.getElementById('hud');
+const lbEl   = document.getElementById('race-leaderboard');
 const net    = new Network();
 
 // Map key -> file path for loading
@@ -238,6 +269,7 @@ async function handleConnect(host, playerName) {
       // Returned to lobby after race
       destroyGame();
       hud.innerHTML = '';
+      lbEl.style.display = 'none';
       canvas.style.zIndex = '';
       showScreen('lobby');
     }
@@ -269,6 +301,19 @@ async function handleConnect(host, playerName) {
     const spawnIdx = lobbyState ? lobbyState.players.findIndex(p => p.id === myPlayerId) : 0;
 
     initGame(canvas, hud, trackData, Math.max(0, spawnIdx));
+
+    // Wire up leaderboard
+    lbEl.style.display = 'block';
+    lbEl.innerHTML = '';
+    setLeaderboardEl(lbEl);
+    setLocalPlayerId(myPlayerId);
+    if (lobbyState) {
+      const infoMap = {};
+      for (const p of lobbyState.players) {
+        infoMap[p.id] = { name: p.name, color: p.color };
+      }
+      setPlayerInfoMap(infoMap);
+    }
 
     // Spawn remote cars for all other players
     if (lobbyState) {
@@ -310,6 +355,7 @@ async function handleConnect(host, playerName) {
 
   net.on('results', (msg) => {
     net.stopSync();
+    lbEl.style.display = 'none';
     const mapName = lobbyState ? lobbyState.map : '';
     showResults(msg.results, MAP_INFO_NAME(mapName));
     canvas.style.zIndex = '';
@@ -323,6 +369,7 @@ async function handleConnect(host, playerName) {
     net.stopSync();
     destroyGame();
     hud.innerHTML = '';
+    lbEl.style.display = 'none';
     canvas.style.zIndex = '';
     showScreen('connect');
     showConnectError('DISCONNECTED FROM SERVER');

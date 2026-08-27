@@ -41,6 +41,9 @@ let _lapCallback = null;
 let _finishCallback = null;
 let _prevLapCount = 0;
 let _initialized = false;
+let _localPlayerId = null;
+let _playerInfoMap = {};   // {id: {name, color}}
+let _leaderboardEl = null;
 
 export function initGame(canvas, hud, trackData, spawnIndex) {
   destroyGame();
@@ -132,6 +135,9 @@ export function destroyGame() {
   scene = null; renderer = null; camera = null; track = null;
   playerPhysics = null; playerMesh = null;
   _initialized = false;
+  _leaderboardEl = null;
+  _localPlayerId = null;
+  _playerInfoMap = {};
 }
 
 export function setLapCallback(fn) { _lapCallback = fn; }
@@ -229,20 +235,15 @@ function updateHUD(st) {
   const ltStr = formatTime(playerPhysics.lapTime);
   const blStr = playerPhysics.bestLap < Infinity ? formatTime(playerPhysics.bestLap) : '--:--.---';
 
-  let pos = 1;
-  for (const [, rc] of remoteCars) {
-    if (!rc.fading && rc.lapCount > playerPhysics.lapCount) pos++;
-    else if (!rc.fading && rc.lapCount === playerPhysics.lapCount && rc.trackT > (playerPhysics._prevT || 0)) pos++;
-  }
-
   hudEl.innerHTML =
     `<div>LAP ${lap}/${track.data.laps}</div>` +
-    `<div>POS ${pos}/${remoteCars.size + 1}</div>` +
     `<div>SPD ${spd} KM/H</div>` +
     `<div>TIME ${ltStr}</div>` +
     `<div>BEST ${blStr}</div>` +
     (playerPhysics.finished ? `<div class="finish">FINISH! ${formatTime(playerPhysics.totalTime)}</div>` : '') +
     (st.drift > .3 ? '<div class="drift">DRIFT!</div>' : '');
+
+  updateLeaderboard();
 }
 
 function formatTime(s) {
@@ -359,4 +360,71 @@ export function removeRemoteCar(id) {
 }
 
 export function toggleCRT() { crtEnabled = !crtEnabled; return crtEnabled; }
+
+// ---- Live Leaderboard ----
+export function setLeaderboardEl(el) { _leaderboardEl = el; }
+export function setLocalPlayerId(id) { _localPlayerId = id; }
+export function setPlayerInfoMap(map) { _playerInfoMap = map; }
+
+function updateLeaderboard() {
+  if (!_leaderboardEl || !track) return;
+
+  // Build entries: local player + all non-fading remotes
+  const entries = [];
+
+  // Local player
+  const localLap = playerPhysics ? playerPhysics.lapCount : 0;
+  const localT = playerPhysics ? (playerPhysics._prevT || 0) : 0;
+  const localFinished = playerPhysics ? playerPhysics.finished : false;
+  const localInfo = _playerInfoMap[_localPlayerId] || {};
+  entries.push({
+    id: _localPlayerId || '__local',
+    name: localInfo.name || 'YOU',
+    color: localInfo.color,
+    lap: localLap,
+    trackT: localT,
+    finished: localFinished,
+    isLocal: true
+  });
+
+  // Remote players
+  for (const [id, rc] of remoteCars) {
+    if (rc.fading) continue;
+    const info = _playerInfoMap[id] || {};
+    entries.push({
+      id,
+      name: info.name || 'PLAYER',
+      color: info.color,
+      lap: rc.lapCount || 0,
+      trackT: rc.trackT || 0,
+      finished: rc.finished || false,
+      isLocal: false
+    });
+  }
+
+  // Sort: finished first (by finish order — higher lap + trackT is better),
+  // then by lap desc, then trackT desc
+  entries.sort((a, b) => {
+    if (a.finished !== b.finished) return a.finished ? -1 : 1;
+    if (a.lap !== b.lap) return b.lap - a.lap;
+    return b.trackT - a.trackT;
+  });
+
+  // Render
+  let html = '';
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    const c = e.color
+      ? `rgb(${(e.color[0]*255)|0},${(e.color[1]*255)|0},${(e.color[2]*255)|0})`
+      : '#0ff';
+    const cls = e.isLocal ? ' lb-local' : '';
+    html += `<div class="lb-row${cls}">` +
+      `<span class="lb-pos">${i + 1}</span>` +
+      `<span class="lb-dot" style="background:${c}"></span>` +
+      `<span class="lb-name">${e.name}</span>` +
+      `</div>`;
+  }
+  _leaderboardEl.innerHTML = html;
+}
+
 export { track, playerPhysics, mapJsonToTrackData };
