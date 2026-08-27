@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Track, testTrack, mapJsonToTrackData } from './track.js';
 import { CarPhysics, createCarMesh, getCarColor } from './car.js';
+import { createMinimap, initMinimapTrack, updateMinimap, destroyMinimap } from './minimap.js';
 
 // ---- CRT post-processing shader ----
 const CRT_VS = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`;
@@ -41,6 +42,7 @@ let _lapCallback = null;
 let _finishCallback = null;
 let _prevLapCount = 0;
 let _initialized = false;
+let _playerColor = [0, 1, 1];
 
 export function initGame(canvas, hud, trackData, spawnIndex) {
   destroyGame();
@@ -98,6 +100,11 @@ export function initGame(canvas, hud, trackData, spawnIndex) {
   playerMesh.position.set(start.x, 0, start.z);
   playerMesh.rotation.y = start.angle;
   scene.add(playerMesh);
+  _playerColor = pColor;
+
+  // Minimap
+  createMinimap();
+  initMinimapTrack(track);
 
   camera.position.set(
     start.x - Math.sin(start.angle) * 8, 3.5,
@@ -122,6 +129,7 @@ export function initGame(canvas, hud, trackData, spawnIndex) {
 export function destroyGame() {
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
   remoteCars.clear();
+  destroyMinimap();
   if (renderer) {
     renderer.dispose();
     if (rtTarget) rtTarget.dispose();
@@ -199,6 +207,15 @@ function update(dt) {
 
   updateRemoteMeshes();
   updateHUD(st);
+
+  // Update minimap with all car positions
+  const others = [];
+  for (const [id, rc] of remoteCars) {
+    if (!rc.fading) {
+      others.push({ x: rc.targetX, z: rc.targetZ, color: rc.color || [0.6, 0.6, 0.6] });
+    }
+  }
+  updateMinimap({ x: st.x, z: st.z }, _playerColor, others);
 }
 
 function updateRemoteMeshes() {
@@ -334,11 +351,13 @@ export function getPlayerState() {
 export function spawnRemoteCar(id, colorArr) {
   if (!scene) return;
   if (remoteCars.has(id)) return;
-  const mesh = createCarMesh(colorArr || getCarColor(remoteCars.size + 1));
+  const c = colorArr || getCarColor(remoteCars.size + 1);
+  const mesh = createCarMesh(c);
   scene.add(mesh);
   remoteCars.set(id, {
     mesh, targetX: 0, targetZ: 0, targetAngle: 0,
-    fadeAlpha: 1, fading: false, lapCount: 0, trackT: 0
+    fadeAlpha: 1, fading: false, lapCount: 0, trackT: 0,
+    color: c
   });
 }
 
