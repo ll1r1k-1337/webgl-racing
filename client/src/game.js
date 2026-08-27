@@ -96,7 +96,7 @@ export function initGame(canvas, hud, trackData, spawnIndex) {
   const pColor = getCarColor(si);
   playerMesh = createCarMesh(pColor);
   playerMesh.position.set(start.x, 0, start.z);
-  playerMesh.rotation.y = start.angle;
+  playerMesh.rotation.y = start.angle + Math.PI;
   scene.add(playerMesh);
 
   camera.position.set(
@@ -176,8 +176,8 @@ function update(dt) {
 
   const st = playerPhysics.getState();
   playerMesh.position.set(st.x, 0, st.z);
-  playerMesh.rotation.y = st.angle;
-  playerMesh.rotation.z = -playerPhysics.steer * st.drift * .15;
+  playerMesh.rotation.y = st.angle + Math.PI;
+  playerMesh.rotation.z = playerPhysics.steer * st.drift * .15;
 
   // Chase camera
   const behindX = st.x - Math.sin(st.angle) * 8;
@@ -347,7 +347,7 @@ export function updateRemoteCar(id, state) {
   if (!rc) return;
   rc.targetX = state.x;
   rc.targetZ = state.z;
-  rc.targetAngle = state.ry !== undefined ? state.ry : (state.angle || 0);
+  rc.targetAngle = (state.ry !== undefined ? state.ry : (state.angle || 0)) + Math.PI;
   if (state.lap !== undefined) rc.lapCount = state.lap;
   if (state.trackT !== undefined) rc.trackT = state.trackT;
 }
