@@ -2,8 +2,18 @@ import * as THREE from 'three';
 import { Track, testTrack, mapJsonToTrackData } from './track.js';
 import { CarPhysics, createCarMesh, getCarColor } from './car.js';
 import { createMinimap, initMinimapTrack, updateMinimap, destroyMinimap } from './minimap.js';
+import { ParticleSystem } from './particles.js';
+import {
+  initAudio, resumeAudio, destroyAudio,
+  startEngine, updateEngine, stopEngine,
+  startDrift, updateDrift, stopDrift,
+  startMusic, stopMusic,
+  playCountdownBeep, playLapChime, playWallHit, playFinish,
+  setMuted, isMuted, setMusicMuted, isMusicMuted,
+  setMusicVolume, setSfxVolume,
+} from './audio.js';
 
-// ---- CRT post-processing shader ----
+// ---- CRT + bloom post-processing shader ----
 const CRT_VS = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`;
 const CRT_FS = `
   precision mediump float;
@@ -12,16 +22,39 @@ const CRT_FS = `
   varying vec2 vUv;
   void main() {
     vec2 uv = vUv;
+    // Barrel distortion
     vec2 c = uv - .5;
     float d = dot(c, c);
     uv += c * d * .08;
     vec4 col = texture2D(tDiffuse, uv);
-    float sl = sin(uv.y * 240.0 * 3.14159) * .06 + .94;
+
+    // Bloom: sample surrounding pixels and add glow
+    vec2 px = vec2(1.0/384.0, 1.0/216.0);
+    vec4 bloom = vec4(0.0);
+    for (float i = -2.0; i <= 2.0; i += 1.0) {
+      for (float j = -2.0; j <= 2.0; j += 1.0) {
+        vec4 s = texture2D(tDiffuse, uv + vec2(i, j) * px * 2.0);
+        float lum = dot(s.rgb, vec3(0.2126, 0.7152, 0.0722));
+        if (lum > 0.5) bloom += s * 0.04;
+      }
+    }
+    col.rgb += bloom.rgb;
+
+    // Chromatic aberration
+    col.r = texture2D(tDiffuse, uv + vec2(.0012, 0.0)).r * .3 + col.r * .7;
+    col.b = texture2D(tDiffuse, uv - vec2(.0012, 0.0)).b * .3 + col.b * .7;
+
+    // Scanlines
+    float sl = sin(uv.y * 240.0 * 3.14159) * .05 + .95;
     col.rgb *= sl;
-    col.r = texture2D(tDiffuse, uv + vec2(.001, 0.0)).r * .3 + col.r * .7;
-    col.b = texture2D(tDiffuse, uv - vec2(.001, 0.0)).b * .3 + col.b * .7;
+
+    // Vignette
     float v = 1.0 - d * 1.2;
     col.rgb *= v;
+
+    // Slight flicker
+    col.rgb *= 0.98 + 0.02 * sin(time * 8.0);
+
     gl_FragColor = col;
   }
 `;
@@ -46,6 +79,8 @@ let _playerColor = [0, 1, 1];
 let _localPlayerId = null;
 let _playerInfoMap = {};   // {id: {name, color}}
 let _leaderboardEl = null;
+let _particles = null;
+let _prevWallHit = false;
 
 export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
   destroyGame();
@@ -79,6 +114,7 @@ export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
   const td = trackData || testTrack;
   track = new Track(td);
   scene.add(track.createMeshes());
+  scene.add(createNeonEdgeGlow(track));
   scene.add(createGrid());
   scene.add(createSky());
 
@@ -105,6 +141,9 @@ export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
   scene.add(playerMesh);
   _playerColor = pColor;
 
+  // Particles
+  _particles = new ParticleSystem(scene);
+
   // Minimap
   createMinimap();
   initMinimapTrack(track);
@@ -115,11 +154,19 @@ export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
   );
   camera.lookAt(start.x, 0.5, start.z);
 
+  // Audio
+  initAudio();
+  resumeAudio();
+  startEngine();
+  startDrift();
+  startMusic();
+
   setupInput();
   window.addEventListener('resize', onResize);
   onResize();
 
   _initialized = true;
+  _prevWallHit = false;
   function loop() {
     animFrameId = requestAnimationFrame(loop);
     const dt = Math.min(clock.getDelta(), .1);
@@ -133,6 +180,10 @@ export function destroyGame() {
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
   remoteCars.clear();
   destroyMinimap();
+  if (_particles) { _particles.destroy(); _particles = null; }
+  stopEngine();
+  stopDrift();
+  stopMusic();
   if (renderer) {
     renderer.dispose();
     if (rtTarget) rtTarget.dispose();
@@ -183,6 +234,7 @@ function getInput() {
 function update(dt) {
   if (playerPhysics.finished) {
     updateRemoteMeshes();
+    if (_particles) _particles.update(dt);
     return;
   }
 
@@ -201,18 +253,45 @@ function update(dt) {
   camera.position.lerp(new THREE.Vector3(behindX, 3.5, behindZ), .08);
   camera.lookAt(targetX, 0.5, targetZ);
 
+  // Audio updates
+  updateEngine(st.speed, playerPhysics.maxSpeed);
+  updateDrift(st.drift);
+
+  // Particles: drift sparks + exhaust
+  if (_particles) {
+    if (st.drift > 0.3) {
+      _particles.emitDriftSparks(st.x, st.z, st.angle, st.speed, st.drift);
+    }
+    _particles.emitExhaust(st.x, st.z, st.angle, st.speed);
+  }
+
+  // Wall hit detection for SFX and particles
+  if (track) {
+    const w = track.wallHit(st.x, st.z, 0.9);
+    if (w.hit && !_prevWallHit) {
+      playWallHit();
+      if (_particles) _particles.emitWallSparks(st.x, st.z, w.nx, w.nz);
+    }
+    _prevWallHit = w.hit;
+  }
+
   // Detect lap completion
   if (playerPhysics.lapCount > _prevLapCount) {
     _prevLapCount = playerPhysics.lapCount;
+    playLapChime();
     if (_lapCallback) _lapCallback(playerPhysics.lapCount);
   }
   if (playerPhysics.finished && _finishCallback) {
+    playFinish();
     _finishCallback(playerPhysics.totalTime);
     _finishCallback = null; // fire once
   }
 
   updateRemoteMeshes();
   updateHUD(st);
+
+  // Update particles
+  if (_particles) _particles.update(dt);
 
   // Update minimap with all car positions
   const others = [];
@@ -337,7 +416,7 @@ function createGrid() {
   return new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true }));
 }
 
-// ---- Synthwave sky ----
+// ---- Synthwave sky with stars ----
 function createSky() {
   const g = new THREE.SphereGeometry(400, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
   const colors = [];
@@ -348,14 +427,82 @@ function createSky() {
   }
   g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide }));
+
+  // Sun with gradient rings
   const sun = new THREE.Mesh(
-    new THREE.CircleGeometry(30, 16),
+    new THREE.CircleGeometry(30, 32),
     new THREE.MeshBasicMaterial({ color: 0xff4400, side: THREE.DoubleSide })
   );
   sun.position.set(0, 40, -350); sun.lookAt(0, 40, 0);
+
+  // Sun glow ring
+  const glow = new THREE.Mesh(
+    new THREE.RingGeometry(30, 50, 32),
+    new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+  );
+  glow.position.set(0, 40, -349); glow.lookAt(0, 40, 0);
+
+  // Stars scattered across the upper sky
+  const starPos = [], starCol = [];
+  for (let i = 0; i < 300; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI * 0.35 + Math.PI * 0.1; // upper portion
+    const r = 395;
+    const x = r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.cos(phi);
+    const z = r * Math.sin(phi) * Math.sin(theta);
+    const sz = 0.3 + Math.random() * 0.7;
+    // Small quad for each star
+    const dx = sz * 0.5, dy = sz * 0.5;
+    starPos.push(x - dx, y - dy, z, x + dx, y - dy, z, x + dx, y + dy, z);
+    starPos.push(x - dx, y - dy, z, x + dx, y + dy, z, x - dx, y + dy, z);
+    const bright = 0.5 + Math.random() * 0.5;
+    const tint = Math.random();
+    for (let k = 0; k < 6; k++) {
+      starCol.push(
+        bright * (0.8 + tint * 0.2),
+        bright * (0.8 + (1 - tint) * 0.1),
+        bright
+      );
+    }
+  }
+  const sg2 = new THREE.BufferGeometry();
+  sg2.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+  sg2.setAttribute('color', new THREE.Float32BufferAttribute(starCol, 3));
+  const stars = new THREE.Mesh(sg2, new THREE.MeshBasicMaterial({ vertexColors: true }));
+
   const sg = new THREE.Group();
-  sg.add(m); sg.add(sun);
+  sg.add(m); sg.add(sun); sg.add(glow); sg.add(stars);
   return sg;
+}
+
+// ---- Neon edge glow strips along track walls ----
+function createNeonEdgeGlow(track) {
+  const grp = new THREE.Group();
+  const h = 0.15; // thin glow strip height
+  const yOff = track.data.wallHeight + 0.02; // sit just above wall top
+
+  for (const [edges, color] of [[track.edgeL, [0, 1, 1]], [track.edgeR, [1, 0, 1]]]) {
+    const pos = [], col = [];
+    for (let i = 0; i < track.samples; i++) {
+      const j = i + 1;
+      const e0 = edges[i], e1 = edges[j];
+      // Pulsing color based on position
+      const pulse = 0.6 + 0.4 * Math.sin(i * 0.1);
+      const c = [color[0] * pulse, color[1] * pulse, color[2] * pulse];
+      pos.push(e0.x, yOff, e0.z, e1.x, yOff, e1.z, e1.x, yOff + h, e1.z);
+      pos.push(e0.x, yOff, e0.z, e1.x, yOff + h, e1.z, e0.x, yOff + h, e0.z);
+      for (let k = 0; k < 6; k++) col.push(c[0], c[1], c[2]);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    grp.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({
+      vertexColors: true, transparent: true, opacity: 0.7,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    })));
+  }
+  return grp;
 }
 
 // ---- Multiplayer API ----
@@ -399,6 +546,11 @@ export function removeRemoteCar(id) {
 }
 
 export function toggleCRT() { crtEnabled = !crtEnabled; return crtEnabled; }
+
+// ---- Audio public re-exports for UI ----
+export { setMuted, isMuted, setMusicMuted, isMusicMuted, setMusicVolume, setSfxVolume };
+export { initAudio, resumeAudio, destroyAudio };
+export { playCountdownBeep };
 
 // ---- Live Leaderboard ----
 export function setLeaderboardEl(el) { _leaderboardEl = el; }
