@@ -79,7 +79,18 @@ function createRoom(name, maxLaps) {
   return room;
 }
 
-function getPlayerState(playerId, name, ws) {
+// Deterministic car color palette (matches client/src/car.js CAR_COLORS)
+const CAR_COLORS = [
+  [0.12, 0.35, 0.95], // blue
+  [0.95, 0.15, 0.15], // red
+  [0.15, 0.9, 0.25],  // green
+  [0.95, 0.85, 0.1],  // yellow
+  [0.95, 0.1, 0.85],  // magenta
+  [0.1, 0.95, 0.9],   // cyan
+];
+
+function getPlayerState(playerId, name, ws, colorIndex) {
+  const color = CAR_COLORS[colorIndex % CAR_COLORS.length];
   return {
     id: playerId,
     name: name || 'Player ' + playerId,
@@ -92,7 +103,7 @@ function getPlayerState(playerId, name, ws) {
     lapTimes: [],
     finished: false,
     finishTime: 0,
-    color: [.2 + Math.random() * .7, .2 + Math.random() * .7, .2 + Math.random() * .7],
+    color,
   };
 }
 
@@ -209,6 +220,7 @@ function startRace(room) {
         vx: p.vx, vy: p.vy, vz: p.vz,
         lap: p.lap,
         finished: p.finished,
+        color: p.color,
       });
     }
     broadcastAll(room, { type: 'state_update', players: states });
@@ -327,7 +339,7 @@ wss.on('connection', (ws) => {
       case 'create_room': {
         removePlayerFromRoom(ws);
         const room = createRoom(m.name, m.maxLaps);
-        const player = getPlayerState(playerId, m.playerName, ws);
+        const player = getPlayerState(playerId, m.playerName, ws, room.players.size);
         room.players.set(playerId, player);
         playerRoom.set(ws, { roomId: room.id, playerId });
         ws.send(JSON.stringify({ type: 'room_created', roomId: room.id }));
@@ -353,7 +365,7 @@ wss.on('connection', (ws) => {
           break;
         }
 
-        const player = getPlayerState(playerId, m.playerName, ws);
+        const player = getPlayerState(playerId, m.playerName, ws, room.players.size);
         room.players.set(playerId, player);
         playerRoom.set(ws, { roomId: room.id, playerId });
         ws.send(JSON.stringify({ type: 'joined', roomId: room.id, playerId, color: player.color }));
