@@ -42,7 +42,7 @@ let _finishCallback = null;
 let _prevLapCount = 0;
 let _initialized = false;
 
-export function initGame(canvas, hud, trackData, spawnIndex) {
+export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
   destroyGame();
   hudEl = hud;
   _canvas = canvas;
@@ -93,7 +93,7 @@ export function initGame(canvas, hud, trackData, spawnIndex) {
   playerPhysics.angle = start.angle;
   _prevLapCount = 0;
 
-  const pColor = getCarColor(si);
+  const pColor = playerColor || getCarColor(si);
   playerMesh = createCarMesh(pColor);
   playerMesh.position.set(start.x, 0, start.z);
   playerMesh.rotation.y = start.angle + Math.PI;

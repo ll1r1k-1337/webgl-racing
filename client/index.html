@@ -265,10 +265,11 @@ async function handleConnect(host, playerName) {
       }
     }
 
-    // Find my spawn index
+    // Find my spawn index and server-assigned color
     const spawnIdx = lobbyState ? lobbyState.players.findIndex(p => p.id === myPlayerId) : 0;
+    const myColor = lobbyState ? lobbyState.players.find(p => p.id === myPlayerId)?.color : null;
 
-    initGame(canvas, hud, trackData, Math.max(0, spawnIdx));
+    initGame(canvas, hud, trackData, Math.max(0, spawnIdx), myColor);
 
     // Spawn remote cars for all other players
     if (lobbyState) {
@@ -291,7 +292,7 @@ async function handleConnect(host, playerName) {
     if (!msg.players) return;
     for (const p of msg.players) {
       if (p.id === myPlayerId) continue;
-      spawnRemoteCar(p.id, null);  // no-op if already exists
+      spawnRemoteCar(p.id, p.color);  // uses server color; no-op if already exists
       updateRemoteCar(p.id, p);
     }
   });
