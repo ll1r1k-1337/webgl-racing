@@ -201,11 +201,31 @@ function update(dt) {
   updateHUD(st);
 }
 
+function clampToTrack(x, z) {
+  if (!track) return { x, z };
+  const p = track.project(x, z);
+  const edge = track.halfW - 0.9;   // same car half-width as wallHit
+  if (Math.abs(p.lateral) <= edge) return { x, z };
+  // Push back inside the wall, same logic as wallHit
+  const sign = p.lateral > 0 ? 1 : -1;
+  const pen = Math.abs(p.lateral) - edge;
+  return { x: x - sign * p.nx * pen, z: z - sign * p.nz * pen };
+}
+
 function updateRemoteMeshes() {
   for (const [id, rc] of remoteCars) {
     if (rc.mesh) {
-      rc.mesh.position.x += (rc.targetX - rc.mesh.position.x) * .15;
-      rc.mesh.position.z += (rc.targetZ - rc.mesh.position.z) * .15;
+      // Clamp network target to track bounds before interpolating
+      const clamped = clampToTrack(rc.targetX, rc.targetZ);
+
+      rc.mesh.position.x += (clamped.x - rc.mesh.position.x) * .15;
+      rc.mesh.position.z += (clamped.z - rc.mesh.position.z) * .15;
+
+      // Also clamp the interpolated position so diagonal lerps can't cut walls
+      const lerpClamped = clampToTrack(rc.mesh.position.x, rc.mesh.position.z);
+      rc.mesh.position.x = lerpClamped.x;
+      rc.mesh.position.z = lerpClamped.z;
+
       let da = rc.targetAngle - rc.mesh.rotation.y;
       while (da > Math.PI) da -= Math.PI * 2;
       while (da < -Math.PI) da += Math.PI * 2;
