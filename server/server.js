@@ -403,7 +403,7 @@ wss.on('connection', (ws) => {
         if (!player || player.finished) break;
 
         // Coerce + clamp values (fixes m5 trust issue)
-        player.x = clamp(Number(m.x) || 0, -100, 100);
+        player.x = clamp(Number(m.x) || 0, -1000, 1000);
         player.z = clamp(Number(m.z) || 0, -10000, 10000);
         player.y = clamp(Number(m.y) || 0, -10, 50);
         player.rx = Number(m.rx) || 0;
