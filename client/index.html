@@ -80,7 +80,7 @@
     padding: 10px 14px; width: 100%; text-align: center;
     outline: none;
   }
-  .ui-input:focus { border-color: #f0f; box-shadow: 0 0 12px #f0f40; }
+  .ui-input:focus { border-color: #f0f; box-shadow: 0 0 12px rgba(255,0,255,0.25); }
   .ui-btn {
     font-family: 'Press Start 2P', monospace; font-size: 10px;
     background: none; border: 2px solid #444; color: #aaa;
@@ -93,9 +93,9 @@
     text-shadow: 0 0 10px #f0f;
     animation: pulse .6s infinite alternate;
   }
-  .ui-btn-primary:hover { background: #f0f20; }
+  .ui-btn-primary:hover { background: rgba(255,0,255,0.12); }
   .ui-btn-accent { border-color: #0f0; color: #0f0; text-shadow: 0 0 8px #0f0; }
-  .ui-btn-accent:hover { background: #0f020; }
+  .ui-btn-accent:hover { background: rgba(0,255,0,0.12); }
   .ui-btn-small { font-size: 7px; padding: 6px 14px; }
   .ui-error { font-size: 8px; color: #f44; margin-top: 8px; min-height: 12px; }
   .ui-controls-hint { font-size: 7px; color: #555; margin-top: 30px; line-height: 2.5; text-align: center; }
@@ -123,7 +123,7 @@
     transition: all .15s;
   }
   .ui-map-card:hover { border-color: #888; }
-  .ui-map-card.selected { border-color: #f0f; background: #f0f10; box-shadow: 0 0 12px #f0f40; }
+  .ui-map-card.selected { border-color: #f0f; background: rgba(255,0,255,0.06); box-shadow: 0 0 12px rgba(255,0,255,0.25); }
   .ui-map-thumb {
     width: 64px; height: 48px; border: 2px solid;
     display: flex; align-items: center; justify-content: center;
@@ -179,6 +179,57 @@
   .ui-lb-date { color: #555; font-size: 7px; }
   .ui-lb-loading { font-size: 9px; color: #888; }
   .ui-lb-empty { font-size: 9px; color: #666; text-align: center; padding: 20px; }
+
+  /* Screen transitions */
+  .ui-screen {
+    transition: opacity .3s ease;
+  }
+  .ui-screen.fade-in {
+    animation: fadeIn .35s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Keyboard focus-visible (a11y) */
+  .ui-btn:focus-visible, .ui-input:focus-visible, .ui-lb-tab:focus-visible, .ui-map-card:focus-visible {
+    outline: 2px solid #ff0;
+    outline-offset: 2px;
+  }
+
+  /* Improved contrast: WAITING state */
+  .ui-player-ready.waiting { color: #f80; }
+
+  /* Leaderboard panel header */
+  #race-leaderboard .lb-title {
+    font-size: 7px; color: #888; letter-spacing: 1px;
+    margin-bottom: 4px; text-align: center;
+    border-bottom: 1px solid #30006a; padding-bottom: 3px;
+  }
+
+  /* HUD transitions */
+  #hud { transition: opacity .3s ease; }
+  #race-leaderboard { transition: opacity .3s ease; }
+
+  /* Minimap border glow */
+  #minimap {
+    box-shadow: 0 0 8px rgba(255,0,255,0.3);
+  }
+
+  /* Responsive lobby for narrow screens */
+  @media (max-width: 640px) {
+    .ui-lobby-cols { flex-direction: column; gap: 20px; align-items: center; }
+    .ui-lobby-left, .ui-lobby-right { min-width: auto; width: 90vw; max-width: 360px; }
+    .ui-title { font-size: 20px; }
+    .ui-form { width: 90vw; max-width: 340px; }
+    .ui-results-table { width: 90vw; max-width: 420px; }
+    .ui-lb-table { width: 90vw; max-width: 440px; }
+    .ui-map-grid { flex-wrap: wrap; justify-content: center; }
+  }
+  @media (max-width: 420px) {
+    .ui-title { font-size: 16px; letter-spacing: 2px; }
+    .ui-heading { font-size: 14px; }
+    .ui-countdown { font-size: 50px; }
+    .ui-controls-hint { font-size: 6px; }
+  }
 </style>
 </head>
 <body>

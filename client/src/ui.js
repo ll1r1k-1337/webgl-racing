@@ -30,7 +30,14 @@ export function createUI() {
 
 export function showScreen(name) {
   for (const [k, s] of Object.entries(screens)) {
-    s.style.display = k === name ? 'flex' : 'none';
+    if (k === name) {
+      s.style.display = 'flex';
+      s.classList.remove('fade-in');
+      void s.offsetHeight; // reflow to re-trigger animation
+      s.classList.add('fade-in');
+    } else {
+      s.style.display = 'none';
+    }
   }
   currentScreen = name;
 }
@@ -72,6 +79,12 @@ function buildConnectScreen() {
     const name = d.querySelector('#ui-name').value.trim() || 'PLAYER';
     if (_onConnect) _onConnect(host, name);
   };
+  // Enter key submits the form
+  const submitOnEnter = (e) => {
+    if (e.key === 'Enter') d.querySelector('#ui-connect-btn').click();
+  };
+  d.querySelector('#ui-host').addEventListener('keydown', submitOnEnter);
+  d.querySelector('#ui-name').addEventListener('keydown', submitOnEnter);
   d.querySelector('#ui-leaderboard-btn').onclick = () => {
     if (_onBackToMenu) _onBackToMenu('leaderboard');
   };
@@ -136,10 +149,11 @@ export function updateLobby(state) {
   count.textContent = state.players.length;
   list.innerHTML = state.players.map(p => {
     const c = p.color ? `rgb(${(p.color[0]*255)|0},${(p.color[1]*255)|0},${(p.color[2]*255)|0})` : '#0ff';
+    const readyCls = p.ready ? 'ui-player-ready' : 'ui-player-ready waiting';
     return `<div class="ui-player-row">
       <span class="ui-player-dot" style="background:${c}"></span>
       <span class="ui-player-name">${esc(p.name)}</span>
-      <span class="ui-player-ready">${p.ready ? '✓ READY' : 'WAITING'}</span>
+      <span class="${readyCls}">${p.ready ? '✓ READY' : '● WAITING'}</span>
     </div>`;
   }).join('');
 
@@ -181,8 +195,18 @@ function buildResultsScreen() {
     <div class="ui-results-table" id="ui-results-table"></div>
     <div class="ui-results-footer">
       <span id="ui-results-timer">RETURNING TO LOBBY IN 10...</span>
+      <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;">
+        <button class="ui-btn ui-btn-small" id="ui-results-menu-btn">MENU</button>
+        <button class="ui-btn ui-btn-small" id="ui-results-lb-btn">LEADERBOARD</button>
+      </div>
     </div>
   `;
+  d.querySelector('#ui-results-menu-btn').onclick = () => {
+    if (_onBackToMenu) _onBackToMenu('menu');
+  };
+  d.querySelector('#ui-results-lb-btn').onclick = () => {
+    if (_onBackToMenu) _onBackToMenu('leaderboard');
+  };
   return d;
 }
 
