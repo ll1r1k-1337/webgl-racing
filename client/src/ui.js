@@ -65,7 +65,7 @@ function buildConnectScreen() {
       <button class="ui-btn" id="ui-leaderboard-btn">LEADERBOARD</button>
       <div class="ui-error" id="ui-connect-error"></div>
     </div>
-    <div class="ui-controls-hint">WASD / ARROWS — STEER & ACCEL &nbsp; SPACE — DRIFT &nbsp; TAB — CRT</div>
+    <div class="ui-controls-hint">WASD / ARROWS — STEER & ACCEL &nbsp; SPACE — DRIFT &nbsp; TAB — CRT &nbsp; M — MUTE</div>
   `;
   d.querySelector('#ui-connect-btn').onclick = () => {
     const host = d.querySelector('#ui-host').value.trim();

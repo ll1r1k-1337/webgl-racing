@@ -49,6 +49,39 @@
   }
   #race-leaderboard .lb-name { font-size: 8px; }
 
+  /* Audio controls (bottom-right) */
+  #audio-controls {
+    position: fixed; bottom: 12px; right: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 15; font-size: 7px; color: #888;
+    pointer-events: auto;
+  }
+  #audio-controls button {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; background: rgba(10,0,21,0.8);
+    border: 1px solid #333; color: #888;
+    padding: 5px 10px; cursor: pointer;
+    transition: all .15s;
+  }
+  #audio-controls button:hover { border-color: #0ff; color: #0ff; }
+  #audio-controls button.active { border-color: #0f0; color: #0f0; text-shadow: 0 0 4px #0f0; }
+  #audio-controls .vol-row {
+    display: flex; align-items: center; gap: 6px;
+  }
+  #audio-controls .vol-row label {
+    width: 30px; text-align: right; font-size: 6px; color: #666;
+  }
+  #audio-controls input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 60px; height: 4px; background: #333;
+    outline: none; border-radius: 2px;
+  }
+  #audio-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 10px; height: 10px; background: #0ff;
+    border-radius: 50%; cursor: pointer;
+  }
+
   /* Scanline overlay */
   #overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -187,6 +220,20 @@
 <div id="hud"></div>
 <div id="race-leaderboard"></div>
 
+<!-- Audio controls -->
+<div id="audio-controls">
+  <button id="btn-mute-all" title="Mute All">🔊 ALL</button>
+  <button id="btn-mute-music" title="Mute Music">🎵 MUSIC</button>
+  <div class="vol-row">
+    <label>MUS</label>
+    <input type="range" id="vol-music" min="0" max="100" value="35">
+  </div>
+  <div class="vol-row">
+    <label>SFX</label>
+    <input type="range" id="vol-sfx" min="0" max="100" value="60">
+  </div>
+</div>
+
 <script type="importmap">
 {
   "imports": {
@@ -197,7 +244,10 @@
 <script type="module">
 import { initGame, destroyGame, getPlayerState, spawnRemoteCar, updateRemoteCar,
          removeRemoteCar, toggleCRT, setLapCallback, setFinishCallback, mapJsonToTrackData,
-         setLeaderboardEl, setLocalPlayerId, setPlayerInfoMap } from './src/game.js';
+         setLeaderboardEl, setLocalPlayerId, setPlayerInfoMap,
+         setMuted, isMuted, setMusicMuted, isMusicMuted,
+         setMusicVolume, setSfxVolume,
+         initAudio, resumeAudio, playCountdownBeep } from './src/game.js';
 import { Network } from './src/network.js';
 import { createUI, showScreen, hideAllScreens, setCallbacks,
          showConnectError, clearConnectError, updateLobby,
@@ -218,6 +268,37 @@ const MAP_FILES = {
 let currentHost = 'localhost:8080';
 let myPlayerId = null;
 let lobbyState = null;
+
+// ---- Audio controls wiring ----
+const btnMuteAll = document.getElementById('btn-mute-all');
+const btnMuteMusic = document.getElementById('btn-mute-music');
+const volMusic = document.getElementById('vol-music');
+const volSfx = document.getElementById('vol-sfx');
+
+btnMuteAll.onclick = () => {
+  resumeAudio();
+  const m = !isMuted();
+  setMuted(m);
+  btnMuteAll.textContent = m ? '🔇 ALL' : '🔊 ALL';
+  btnMuteAll.classList.toggle('active', !m);
+};
+btnMuteAll.classList.add('active');
+
+btnMuteMusic.onclick = () => {
+  resumeAudio();
+  const m = !isMusicMuted();
+  setMusicMuted(m);
+  btnMuteMusic.textContent = m ? '🎵 OFF' : '🎵 MUSIC';
+  btnMuteMusic.classList.toggle('active', !m);
+};
+btnMuteMusic.classList.add('active');
+
+volMusic.oninput = () => { setMusicVolume(volMusic.value / 100); };
+volSfx.oninput = () => { setSfxVolume(volSfx.value / 100); };
+
+// Resume AudioContext on first user interaction
+document.addEventListener('click', () => { initAudio(); resumeAudio(); }, { once: true });
+document.addEventListener('keydown', () => { initAudio(); resumeAudio(); }, { once: true });
 
 // ---- Build UI ----
 createUI();
@@ -277,6 +358,7 @@ async function handleConnect(host, playerName) {
 
   net.on('countdown', (msg) => {
     showCountdown(msg.seconds);
+    playCountdownBeep(msg.seconds === 0);
   });
 
   net.on('race_start', async (msg) => {
@@ -401,9 +483,15 @@ const MAP_NAMES = {
 };
 function MAP_INFO_NAME(key) { return MAP_NAMES[key] || key; }
 
-// CRT toggle
+// CRT toggle + audio mute shortcut
 window.addEventListener('keydown', e => {
   if (e.code === 'Tab') { e.preventDefault(); toggleCRT(); }
+  if (e.code === 'KeyM') {
+    const m = !isMuted();
+    setMuted(m);
+    btnMuteAll.textContent = m ? '🔇 ALL' : '🔊 ALL';
+    btnMuteAll.classList.toggle('active', !m);
+  }
 });
 </script>
 </body>
