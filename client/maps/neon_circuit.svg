@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 685" width="400" height="685">
+  <rect width="100%" height="100%" fill="#050510"/>
+  <!-- Track surface -->
+  <polyline points="57.1,471.4 57.1,385.7 57.1,300.0 57.1,214.3 71.4,142.9 100.0,100.0 142.9,71.4 200.0,57.1 257.1,71.4 300.0,100.0 328.6,142.9 342.9,214.3 342.9,300.0 342.9,385.7 342.9,471.4 328.6,542.9 300.0,585.7 257.1,614.3 200.0,628.6 142.9,614.3 100.0,585.7 71.4,542.9 57.1,471.4" fill="none" stroke="#2a1a40" stroke-width="28.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.8"/>
+  <!-- Track centerline -->
+  <polyline points="57.1,471.4 57.1,385.7 57.1,300.0 57.1,214.3 71.4,142.9 100.0,100.0 142.9,71.4 200.0,57.1 257.1,71.4 300.0,100.0 328.6,142.9 342.9,214.3 342.9,300.0 342.9,385.7 342.9,471.4 328.6,542.9 300.0,585.7 257.1,614.3 200.0,628.6 142.9,614.3 100.0,585.7 71.4,542.9 57.1,471.4" fill="none" stroke="#e040a0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Props -->
+  <rect x="-4.6" y="424.0" width="9.1" height="9.1" fill="rgb(20,20,38)" opacity="0.6"/>
+  <rect x="-11.4" y="322.9" width="11.4" height="11.4" fill="rgb(15,15,30)" opacity="0.6"/>
+  <rect x="1.7" y="238.9" width="8.0" height="8.0" fill="rgb(25,20,45)" opacity="0.6"/>
+  <rect x="395.4" y="424.0" width="9.1" height="9.1" fill="rgb(17,17,35)" opacity="0.6"/>
+  <rect x="387.4" y="321.7" width="13.7" height="13.7" fill="rgb(22,17,40)" opacity="0.6"/>
+  <rect x="400.6" y="237.7" width="10.3" height="10.3" fill="rgb(15,15,33)" opacity="0.6"/>
+  <rect x="193.1" y="-6.9" width="13.7" height="13.7" fill="rgb(12,12,25)" opacity="0.6"/>
+  <rect x="191.4" y="677.1" width="17.1" height="17.1" fill="rgb(20,15,35)" opacity="0.6"/>
+
+  <!-- Checkpoints -->
+  <circle cx="57.1" cy="300.0" r="12.9" fill="none" stroke="#40e0ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="200.0" cy="57.1" r="12.9" fill="none" stroke="#40e0ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="342.9" cy="300.0" r="12.9" fill="none" stroke="#40e0ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="200.0" cy="628.6" r="12.9" fill="none" stroke="#40e0ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+
+  <!-- Spawn positions -->
+  <circle cx="48.6" cy="485.7" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="48.6" y="487.2" text-anchor="middle" font-size="6" fill="#00ff80">P1</text>
+  <circle cx="65.7" cy="485.7" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="65.7" y="487.2" text-anchor="middle" font-size="6" fill="#00ff80">P2</text>
+  <circle cx="48.6" cy="500.0" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="48.6" y="501.5" text-anchor="middle" font-size="6" fill="#00ff80">P3</text>
+  <circle cx="65.7" cy="500.0" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="65.7" y="501.5" text-anchor="middle" font-size="6" fill="#00ff80">P4</text>
+
+  <!-- Start/finish -->
+  <line x1="42.9" y1="471.4" x2="71.4" y2="471.4" stroke="#ffcc00" stroke-width="3"/>
+  <text x="57.1" y="463.4" text-anchor="middle" font-family="monospace" font-size="12" fill="#ffcc00">START</text>
+  <!-- Title -->
+  <text x="10" y="20" font-family="monospace" font-size="14" font-weight="bold" fill="#e0e0ff">Neon Circuit</text>
+  <text x="10" y="36" font-family="monospace" font-size="10" fill="#e0e0ff">EASY — 3 laps</text>
+</svg>

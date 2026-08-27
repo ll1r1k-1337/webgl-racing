@@ -1,0 +1,77 @@
+{
+  "name": "Neon Circuit",
+  "difficulty": "easy",
+  "laps": 3,
+  "theme": {
+    "skyColor": [0.02, 0.02, 0.08],
+    "groundColor": [0.05, 0.05, 0.1],
+    "ambientColor": [0.3, 0.2, 0.5],
+    "fogDensity": 0.15
+  },
+  "trackWidth": 10,
+  "centerline": [
+    { "x": 0, "y": 0, "z": 0 },
+    { "x": 0, "y": 0, "z": -30 },
+    { "x": 0, "y": 0, "z": -60 },
+    { "x": 0, "y": 0, "z": -90 },
+    { "x": 5, "y": 0, "z": -115 },
+    { "x": 15, "y": 0, "z": -130 },
+    { "x": 30, "y": 0, "z": -140 },
+    { "x": 50, "y": 0, "z": -145 },
+    { "x": 70, "y": 0, "z": -140 },
+    { "x": 85, "y": 0, "z": -130 },
+    { "x": 95, "y": 0, "z": -115 },
+    { "x": 100, "y": 0, "z": -90 },
+    { "x": 100, "y": 0, "z": -60 },
+    { "x": 100, "y": 0, "z": -30 },
+    { "x": 100, "y": 0, "z": 0 },
+    { "x": 95, "y": 0, "z": 25 },
+    { "x": 85, "y": 0, "z": 40 },
+    { "x": 70, "y": 0, "z": 50 },
+    { "x": 50, "y": 0, "z": 55 },
+    { "x": 30, "y": 0, "z": 50 },
+    { "x": 15, "y": 0, "z": 40 },
+    { "x": 5, "y": 0, "z": 25 }
+  ],
+  "walls": [
+    { "side": "both", "from": 0, "to": 21, "height": 2.0, "color": [0.1, 0.1, 0.15] }
+  ],
+  "startFinish": {
+    "position": { "x": 0, "y": 0, "z": 0 },
+    "direction": { "x": 0, "z": -1 }
+  },
+  "spawnPositions": [
+    { "x": -3, "y": 0, "z": 5, "direction": { "x": 0, "z": -1 } },
+    { "x": 3, "y": 0, "z": 5, "direction": { "x": 0, "z": -1 } },
+    { "x": -3, "y": 0, "z": 10, "direction": { "x": 0, "z": -1 } },
+    { "x": 3, "y": 0, "z": 10, "direction": { "x": 0, "z": -1 } }
+  ],
+  "checkpoints": [
+    { "position": { "x": 0, "y": 0, "z": -60 }, "radius": 15 },
+    { "position": { "x": 50, "y": 0, "z": -145 }, "radius": 15 },
+    { "position": { "x": 100, "y": 0, "z": -60 }, "radius": 15 },
+    { "position": { "x": 50, "y": 0, "z": 55 }, "radius": 15 }
+  ],
+  "props": [
+    { "type": "building", "position": { "x": -20, "y": 0, "z": -15 }, "scale": { "x": 8, "y": 25, "z": 8 }, "color": [0.08, 0.08, 0.15] },
+    { "type": "building", "position": { "x": -22, "y": 0, "z": -50 }, "scale": { "x": 10, "y": 35, "z": 10 }, "color": [0.06, 0.06, 0.12] },
+    { "type": "building", "position": { "x": -18, "y": 0, "z": -80 }, "scale": { "x": 7, "y": 20, "z": 7 }, "color": [0.1, 0.08, 0.18] },
+    { "type": "neon_sign", "position": { "x": -15, "y": 12, "z": -15 }, "scale": { "x": 4, "y": 2, "z": 0.5 }, "color": [1.0, 0.1, 0.4] },
+    { "type": "neon_sign", "position": { "x": -17, "y": 18, "z": -50 }, "scale": { "x": 5, "y": 2, "z": 0.5 }, "color": [0.1, 0.8, 1.0] },
+    { "type": "building", "position": { "x": 120, "y": 0, "z": -15 }, "scale": { "x": 8, "y": 30, "z": 8 }, "color": [0.07, 0.07, 0.14] },
+    { "type": "building", "position": { "x": 118, "y": 0, "z": -50 }, "scale": { "x": 10, "y": 22, "z": 12 }, "color": [0.09, 0.07, 0.16] },
+    { "type": "building", "position": { "x": 122, "y": 0, "z": -80 }, "scale": { "x": 9, "y": 28, "z": 9 }, "color": [0.06, 0.06, 0.13] },
+    { "type": "neon_sign", "position": { "x": 115, "y": 15, "z": -15 }, "scale": { "x": 4, "y": 2, "z": 0.5 }, "color": [0.9, 0.2, 1.0] },
+    { "type": "neon_sign", "position": { "x": 113, "y": 10, "z": -80 }, "scale": { "x": 3, "y": 1.5, "z": 0.5 }, "color": [0.2, 1.0, 0.3] },
+    { "type": "light_pole", "position": { "x": -12, "y": 0, "z": 0 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "light_pole", "position": { "x": -12, "y": 0, "z": -30 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "light_pole", "position": { "x": -12, "y": 0, "z": -60 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "light_pole", "position": { "x": 112, "y": 0, "z": 0 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "light_pole", "position": { "x": 112, "y": 0, "z": -30 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "light_pole", "position": { "x": 112, "y": 0, "z": -60 }, "scale": { "x": 0.3, "y": 6, "z": 0.3 }, "color": [0.5, 0.5, 0.5] },
+    { "type": "building", "position": { "x": 50, "y": 0, "z": -165 }, "scale": { "x": 12, "y": 40, "z": 12 }, "color": [0.05, 0.05, 0.1] },
+    { "type": "neon_sign", "position": { "x": 50, "y": 20, "z": -158 }, "scale": { "x": 6, "y": 3, "z": 0.5 }, "color": [1.0, 0.6, 0.0] },
+    { "type": "building", "position": { "x": 50, "y": 0, "z": 75 }, "scale": { "x": 15, "y": 18, "z": 10 }, "color": [0.08, 0.06, 0.14] },
+    { "type": "neon_sign", "position": { "x": 50, "y": 10, "z": 68 }, "scale": { "x": 5, "y": 2, "z": 0.5 }, "color": [0.0, 1.0, 0.8] }
+  ]
+}

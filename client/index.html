@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Neon Circuit — Retro Racing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0015; overflow: hidden; font-family: 'Press Start 2P', monospace; }
+  canvas { display: block; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
+
+  /* HUD */
+  #hud {
+    position: fixed; top: 12px; left: 12px;
+    font-size: 11px; color: #0ff; line-height: 2;
+    text-shadow: 0 0 6px #0ff, 0 0 12px #08f;
+    pointer-events: none; z-index: 10;
+  }
+  #hud .drift { color: #f0f; animation: pulse .3s infinite alternate; text-shadow: 0 0 8px #f0f; }
+  #hud .finish { color: #ff0; font-size: 18px; margin-top: 8px; text-shadow: 0 0 12px #ff0, 0 0 24px #f80; animation: pulse .5s infinite alternate; }
+  @keyframes pulse { from { opacity: .7; } to { opacity: 1; } }
+
+  /* Scanline overlay */
+  #overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 5;
+    background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px);
+  }
+
+  /* ---- UI Screens ---- */
+  .ui-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 20;
+    background: radial-gradient(ellipse at center bottom, #1a0040 0%, #0a0015 70%);
+    color: #0ff;
+  }
+  .ui-title {
+    font-size: 32px; color: #f0f;
+    text-shadow: 0 0 20px #f0f, 0 0 40px #a0f, 0 0 60px #60f;
+    margin-bottom: 8px; letter-spacing: 4px;
+  }
+  .ui-subtitle { font-size: 10px; color: #0ff; margin-bottom: 30px; text-shadow: 0 0 8px #0ff; }
+  .ui-heading { font-size: 20px; color: #f0f; text-shadow: 0 0 12px #f0f; margin-bottom: 20px; letter-spacing: 3px; }
+
+  .ui-form { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 340px; }
+  .ui-label { font-size: 8px; color: #888; margin-top: 8px; letter-spacing: 2px; }
+  .ui-input {
+    font-family: 'Press Start 2P', monospace; font-size: 12px;
+    background: #120028; color: #0ff; border: 2px solid #30006a;
+    padding: 10px 14px; width: 100%; text-align: center;
+    outline: none;
+  }
+  .ui-input:focus { border-color: #f0f; box-shadow: 0 0 12px #f0f40; }
+  .ui-btn {
+    font-family: 'Press Start 2P', monospace; font-size: 10px;
+    background: none; border: 2px solid #444; color: #aaa;
+    padding: 10px 24px; cursor: pointer; margin-top: 8px;
+    transition: all .15s;
+  }
+  .ui-btn:hover { border-color: #0ff; color: #0ff; text-shadow: 0 0 8px #0ff; }
+  .ui-btn-primary {
+    border-color: #f0f; color: #f0f; font-size: 14px; padding: 14px 32px;
+    text-shadow: 0 0 10px #f0f;
+    animation: pulse .6s infinite alternate;
+  }
+  .ui-btn-primary:hover { background: #f0f20; }
+  .ui-btn-accent { border-color: #0f0; color: #0f0; text-shadow: 0 0 8px #0f0; }
+  .ui-btn-accent:hover { background: #0f020; }
+  .ui-btn-small { font-size: 7px; padding: 6px 14px; }
+  .ui-error { font-size: 8px; color: #f44; margin-top: 8px; min-height: 12px; }
+  .ui-controls-hint { font-size: 7px; color: #555; margin-top: 30px; line-height: 2.5; text-align: center; }
+
+  /* Lobby */
+  .ui-lobby-cols { display: flex; gap: 40px; margin-top: 10px; }
+  .ui-lobby-left { display: flex; flex-direction: column; align-items: center; min-width: 240px; }
+  .ui-lobby-right { display: flex; flex-direction: column; align-items: center; min-width: 280px; }
+  .ui-player-list { width: 100%; max-height: 160px; overflow-y: auto; margin: 8px 0; }
+  .ui-player-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 9px; padding: 4px 8px; margin: 2px 0;
+    border: 1px solid #222; background: #0a001570;
+  }
+  .ui-player-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .ui-player-name { flex: 1; color: #ddd; }
+  .ui-player-ready { font-size: 7px; color: #0f0; }
+  .ui-lobby-status { font-size: 8px; margin-top: 16px; color: #888; }
+
+  /* Map cards */
+  .ui-map-grid { display: flex; gap: 12px; margin: 8px 0; }
+  .ui-map-card {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 10px; border: 2px solid #333;
+    transition: all .15s;
+  }
+  .ui-map-card:hover { border-color: #888; }
+  .ui-map-card.selected { border-color: #f0f; background: #f0f10; box-shadow: 0 0 12px #f0f40; }
+  .ui-map-thumb {
+    width: 64px; height: 48px; border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #fff; background: #0a001a;
+    text-shadow: 0 0 8px currentColor;
+  }
+  .ui-map-name { font-size: 6px; color: #ccc; }
+  .ui-map-diff { font-size: 6px; }
+
+  /* Countdown */
+  .ui-countdown {
+    font-size: 80px; color: #ff0;
+    text-shadow: 0 0 40px #ff0, 0 0 80px #f80;
+  }
+  @keyframes countPop {
+    0% { transform: scale(2); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Results */
+  .ui-results-table { width: 420px; }
+  .ui-results-map { font-size: 8px; color: #888; margin-bottom: 12px; text-align: center; }
+  .ui-result-row {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 11px; padding: 8px 12px; margin: 4px 0;
+    border: 1px solid #333; background: #12002a90;
+    animation: slideIn .5s ease-out both;
+  }
+  @keyframes slideIn { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .ui-result-pos { width: 40px; font-size: 16px; }
+  .ui-result-name { flex: 1; color: #ddd; }
+  .ui-result-time { color: #ff0; font-size: 10px; }
+  .ui-results-footer { font-size: 7px; color: #666; margin-top: 16px; }
+
+  /* Leaderboard */
+  .ui-lb-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .ui-lb-tab {
+    font-family: 'Press Start 2P', monospace; font-size: 7px;
+    background: none; border: 1px solid #444; color: #888;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .ui-lb-tab.active { border-color: #0ff; color: #0ff; text-shadow: 0 0 6px #0ff; }
+  .ui-lb-table { width: 440px; max-height: 280px; overflow-y: auto; }
+  .ui-lb-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 9px; padding: 6px 10px; margin: 2px 0;
+    border: 1px solid #222; background: #0a001560;
+  }
+  .ui-lb-rank { color: #f0f; width: 30px; }
+  .ui-lb-name { flex: 1; color: #ddd; }
+  .ui-lb-time { color: #ff0; }
+  .ui-lb-date { color: #555; font-size: 7px; }
+  .ui-lb-loading { font-size: 9px; color: #888; }
+  .ui-lb-empty { font-size: 9px; color: #666; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="overlay"></div>
+<div id="hud"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import { initGame, destroyGame, getPlayerState, spawnRemoteCar, updateRemoteCar,
+         removeRemoteCar, toggleCRT, setLapCallback, setFinishCallback, mapJsonToTrackData } from './src/game.js';
+import { Network } from './src/network.js';
+import { createUI, showScreen, hideAllScreens, setCallbacks,
+         showConnectError, clearConnectError, updateLobby,
+         showCountdown, showResults, showLeaderboard } from './src/ui.js';
+
+const canvas = document.getElementById('c');
+const hud    = document.getElementById('hud');
+const net    = new Network();
+
+// Map key -> file path for loading
+const MAP_FILES = {
+  neon_circuit:  'maps/neon_circuit.json',
+  desert_drift:  'maps/desert_drift.json',
+  cyber_highway: 'maps/cyber_highway.json',
+};
+
+let currentHost = 'localhost:8080';
+let myPlayerId = null;
+let lobbyState = null;
+
+// ---- Build UI ----
+createUI();
+setCallbacks({
+  onConnect:     handleConnect,
+  onCreateRoom:  null,
+  onJoinRoom:    null,
+  onReady:       () => net.toggleReady(),
+  onMapSelect:   (map, laps) => net.setMap(map, laps),
+  onBackToMenu:  (dest) => {
+    if (dest === 'leaderboard') showLeaderboard(currentHost);
+    else showScreen('connect');
+  },
+  onDisconnect:  () => { net.disconnect(); showScreen('connect'); },
+});
+showScreen('connect');
+
+// ---- Connect handler ----
+async function handleConnect(host, playerName) {
+  currentHost = host;
+  clearConnectError();
+  try {
+    await net.connect(host, playerName);
+  } catch (e) {
+    showConnectError('CANNOT REACH SERVER — CHECK ADDRESS');
+    return;
+  }
+
+  // Wire up all protocol messages
+  net.on('welcome', (msg) => {
+    myPlayerId = msg.playerId;
+    // Auto-create or join room
+    if (msg.rooms && msg.rooms.length > 0) {
+      const lobby = msg.rooms.find(r => r.state === 'lobby');
+      if (lobby) net.joinRoom(lobby.id);
+      else net.createRoom(playerName + "'s Race");
+    } else {
+      net.createRoom(playerName + "'s Race");
+    }
+  });
+
+  net.on('joined', () => showScreen('lobby'));
+  net.on('room_created', () => showScreen('lobby'));
+
+  net.on('lobby_state', (msg) => {
+    lobbyState = msg;
+    updateLobby(msg);
+    if (msg.state === 'lobby' && currentScreen() !== 'lobby') {
+      // Returned to lobby after race
+      destroyGame();
+      hud.innerHTML = '';
+      canvas.style.zIndex = '';
+      showScreen('lobby');
+    }
+  });
+
+  net.on('countdown', (msg) => {
+    showCountdown(msg.seconds);
+  });
+
+  net.on('race_start', async (msg) => {
+    hideAllScreens();
+    canvas.style.zIndex = '1';
+
+    // Load map data
+    const mapFile = MAP_FILES[msg.map];
+    let trackData;
+    if (mapFile) {
+      try {
+        const resp = await fetch(mapFile);
+        const json = await resp.json();
+        trackData = mapJsonToTrackData(json);
+      } catch (e) {
+        // fallback to default track
+        trackData = null;
+      }
+    }
+
+    // Find my spawn index
+    const spawnIdx = lobbyState ? lobbyState.players.findIndex(p => p.id === myPlayerId) : 0;
+
+    initGame(canvas, hud, trackData, Math.max(0, spawnIdx));
+
+    // Spawn remote cars for all other players
+    if (lobbyState) {
+      for (const p of lobbyState.players) {
+        if (p.id !== myPlayerId) {
+          spawnRemoteCar(p.id, p.color);
+        }
+      }
+    }
+
+    // Set up lap/finish callbacks
+    setLapCallback(() => net.sendLapComplete());
+    setFinishCallback(() => { /* server handles finish detection */ });
+
+    // Start sending state
+    net.startSync(getPlayerState);
+  });
+
+  net.on('state_update', (msg) => {
+    if (!msg.players) return;
+    for (const p of msg.players) {
+      if (p.id === myPlayerId) continue;
+      spawnRemoteCar(p.id, null);  // no-op if already exists
+      updateRemoteCar(p.id, p);
+    }
+  });
+
+  net.on('player_left', (msg) => {
+    removeRemoteCar(msg.playerId);
+  });
+
+  net.on('lap_complete', (msg) => {
+    // Could show a toast — optional visual feedback
+  });
+
+  net.on('race_finish', (msg) => {
+    // Individual finish — could show a banner
+  });
+
+  net.on('results', (msg) => {
+    net.stopSync();
+    const mapName = lobbyState ? lobbyState.map : '';
+    showResults(msg.results, MAP_INFO_NAME(mapName));
+    canvas.style.zIndex = '';
+  });
+
+  net.on('error', (msg) => {
+    showConnectError(msg.message || 'SERVER ERROR');
+  });
+
+  net.on('disconnected', () => {
+    net.stopSync();
+    destroyGame();
+    hud.innerHTML = '';
+    canvas.style.zIndex = '';
+    showScreen('connect');
+    showConnectError('DISCONNECTED FROM SERVER');
+  });
+}
+
+// spawnRemoteCar already no-ops on duplicates, so we can call it freely.
+
+function currentScreen() {
+  // Check which screen is visible
+  const root = document.getElementById('ui-root');
+  if (!root) return null;
+  for (const child of root.children) {
+    if (child.style.display !== 'none') {
+      // derive name from position
+      const screens = ['connect', 'lobby', 'countdown', 'results', 'leaderboard'];
+      const idx = Array.from(root.children).indexOf(child);
+      return screens[idx] || null;
+    }
+  }
+  return null;
+}
+
+const MAP_NAMES = {
+  neon_circuit: 'Neon Circuit',
+  desert_drift: 'Desert Drift',
+  cyber_highway: 'Cyber Highway',
+};
+function MAP_INFO_NAME(key) { return MAP_NAMES[key] || key; }
+
+// CRT toggle
+window.addEventListener('keydown', e => {
+  if (e.code === 'Tab') { e.preventDefault(); toggleCRT(); }
+});
+</script>
+</body>
+</html>

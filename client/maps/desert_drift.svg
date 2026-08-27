@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 584" width="400" height="584">
+  <rect width="100%" height="100%" fill="#c8a050"/>
+  <!-- Track surface -->
+  <polyline points="61.5,523.1 61.5,400.0 61.5,276.9 61.5,153.8 76.9,92.3 116.9,61.5 169.2,67.7 200.0,107.7 190.8,169.2 153.8,200.0 123.1,215.4 138.5,261.5 184.6,292.3 230.8,307.7 276.9,301.5 307.7,276.9 313.8,230.8 292.3,190.8 261.5,184.6 246.2,215.4 252.3,261.5 283.1,307.7 323.1,353.8 338.5,415.4 323.1,476.9 276.9,507.7 230.8,498.5 200.0,467.7 178.5,430.8 153.8,446.2 129.2,486.2 98.5,507.7 61.5,523.1" fill="none" stroke="#a08040" stroke-width="24.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.8"/>
+  <!-- Track centerline -->
+  <polyline points="61.5,523.1 61.5,400.0 61.5,276.9 61.5,153.8 76.9,92.3 116.9,61.5 169.2,67.7 200.0,107.7 190.8,169.2 153.8,200.0 123.1,215.4 138.5,261.5 184.6,292.3 230.8,307.7 276.9,301.5 307.7,276.9 313.8,230.8 292.3,190.8 261.5,184.6 246.2,215.4 252.3,261.5 283.1,307.7 323.1,353.8 338.5,415.4 323.1,476.9 276.9,507.7 230.8,498.5 200.0,467.7 178.5,430.8 153.8,446.2 129.2,486.2 98.5,507.7 61.5,523.1" fill="none" stroke="#e0c070" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Props -->
+  <line x1="15.4" y1="460.5" x2="15.4" y2="462.5" stroke="rgb(51,114,38)" stroke-width="2" opacity="0.7"/>
+  <line x1="6.2" y1="352.8" x2="6.2" y2="354.8" stroke="rgb(45,102,30)" stroke-width="2" opacity="0.7"/>
+  <line x1="24.6" y1="214.4" x2="24.6" y2="216.4" stroke="rgb(56,122,40)" stroke-width="2" opacity="0.7"/>
+  <circle cx="107.7" cy="30.8" r="3.7" fill="rgb(127,96,56)" opacity="0.5"/>
+  <circle cx="215.4" cy="46.2" r="4.9" fill="rgb(140,102,63)" opacity="0.5"/>
+  <circle cx="30.8" cy="107.7" r="3.1" fill="rgb(122,89,51)" opacity="0.5"/>
+  <circle cx="353.8" cy="384.6" r="4.3" fill="rgb(132,102,61)" opacity="0.5"/>
+  <circle cx="353.8" cy="276.9" r="6.2" fill="rgb(114,84,45)" opacity="0.5"/>
+  <line x1="292.3" y1="537.5" x2="292.3" y2="539.5" stroke="rgb(51,107,35)" stroke-width="2" opacity="0.7"/>
+  <line x1="215.4" y1="546.7" x2="215.4" y2="548.7" stroke="rgb(56,127,43)" stroke-width="2" opacity="0.7"/>
+  <circle cx="169.2" cy="384.6" r="1.8" fill="rgb(127,96,56)" opacity="0.5"/>
+  <line x1="107.7" y1="245.2" x2="107.7" y2="247.2" stroke="rgb(48,109,33)" stroke-width="2" opacity="0.7"/>
+  <circle cx="230.8" cy="338.5" r="2.5" fill="rgb(135,102,58)" opacity="0.5"/>
+  <circle cx="61.5" cy="516.9" r="9.8" fill="rgb(204,204,0)" opacity="0.5"/>
+
+  <!-- Checkpoints -->
+  <circle cx="61.5" cy="276.9" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="169.2" cy="67.7" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="153.8" cy="200.0" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="307.7" cy="276.9" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="323.1" cy="415.4" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="129.2" cy="486.2" r="11.1" fill="none" stroke="#ff6020" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+
+  <!-- Spawn positions -->
+  <circle cx="53.8" cy="538.5" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="53.8" y="540.0" text-anchor="middle" font-size="6" fill="#00ff80">P1</text>
+  <circle cx="69.2" cy="538.5" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="69.2" y="540.0" text-anchor="middle" font-size="6" fill="#00ff80">P2</text>
+  <circle cx="53.8" cy="553.8" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="53.8" y="555.3" text-anchor="middle" font-size="6" fill="#00ff80">P3</text>
+  <circle cx="69.2" cy="553.8" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="69.2" y="555.3" text-anchor="middle" font-size="6" fill="#00ff80">P4</text>
+
+  <!-- Start/finish -->
+  <line x1="49.2" y1="523.1" x2="73.8" y2="523.1" stroke="#ffffff" stroke-width="3"/>
+  <text x="61.5" y="515.1" text-anchor="middle" font-family="monospace" font-size="12" fill="#ffffff">START</text>
+  <!-- Title -->
+  <text x="10" y="20" font-family="monospace" font-size="14" font-weight="bold" fill="#402000">Desert Drift</text>
+  <text x="10" y="36" font-family="monospace" font-size="10" fill="#402000">MEDIUM — 2 laps</text>
+</svg>

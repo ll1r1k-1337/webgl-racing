@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 467" width="400" height="467">
+  <rect width="100%" height="100%" fill="#000010"/>
+  <!-- Track surface -->
+  <polyline points="48.5,407.3 48.5,346.7 48.5,286.1 48.5,225.5 48.5,164.8 67.9,116.4 97.0,92.1 133.3,97.0 150.3,128.5 145.5,164.8 133.3,201.2 140.6,237.6 169.7,257.0 198.8,249.7 218.2,225.5 223.0,189.1 213.3,152.7 193.9,128.5 181.8,104.2 189.1,67.9 218.2,48.5 254.5,55.8 278.8,87.3 286.1,128.5 278.8,177.0 290.9,225.5 315.2,261.8 339.4,286.1 351.5,322.4 339.4,363.6 310.3,387.9 278.8,395.2 242.4,387.9 213.3,370.9 189.1,383.0 157.6,402.4 121.2,419.4 84.8,419.4 48.5,407.3" fill="none" stroke="#101828" stroke-width="21.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.8"/>
+  <!-- Track centerline -->
+  <polyline points="48.5,407.3 48.5,346.7 48.5,286.1 48.5,225.5 48.5,164.8 67.9,116.4 97.0,92.1 133.3,97.0 150.3,128.5 145.5,164.8 133.3,201.2 140.6,237.6 169.7,257.0 198.8,249.7 218.2,225.5 223.0,189.1 213.3,152.7 193.9,128.5 181.8,104.2 189.1,67.9 218.2,48.5 254.5,55.8 278.8,87.3 286.1,128.5 278.8,177.0 290.9,225.5 315.2,261.8 339.4,286.1 351.5,322.4 339.4,363.6 310.3,387.9 278.8,395.2 242.4,387.9 213.3,370.9 189.1,383.0 157.6,402.4 121.2,419.4 84.8,419.4 48.5,407.3" fill="none" stroke="#00ccff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Props -->
+  <rect x="1.9" y="355.9" width="5.8" height="5.8" fill="rgb(10,10,20)" opacity="0.6"/>
+  <rect x="8.2" y="185.2" width="7.8" height="7.8" fill="rgb(7,7,17)" opacity="0.6"/>
+  <rect x="164.8" y="14.5" width="9.7" height="9.7" fill="rgb(10,12,25)" opacity="0.6"/>
+  <rect x="311.3" y="88.2" width="7.8" height="7.8" fill="rgb(7,10,20)" opacity="0.6"/>
+  <rect x="372.4" y="282.7" width="6.8" height="6.8" fill="rgb(10,12,25)" opacity="0.6"/>
+  <circle cx="150.3" cy="249.7" r="2.9" fill="rgb(204,51,0)" opacity="0.5"/>
+  <circle cx="189.1" cy="387.9" r="2.9" fill="rgb(204,51,0)" opacity="0.5"/>
+
+  <!-- Checkpoints -->
+  <circle cx="48.5" cy="225.5" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="133.3" cy="97.0" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="169.7" cy="257.0" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="218.2" cy="48.5" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="278.8" cy="177.0" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="339.4" cy="322.4" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="278.8" cy="395.2" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  <circle cx="121.2" cy="419.4" r="10.2" fill="none" stroke="#ff00aa" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+
+  <!-- Spawn positions -->
+  <circle cx="41.2" cy="419.4" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="41.2" y="420.9" text-anchor="middle" font-size="6" fill="#00ff80">P1</text>
+  <circle cx="55.8" cy="419.4" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="55.8" y="420.9" text-anchor="middle" font-size="6" fill="#00ff80">P2</text>
+  <circle cx="41.2" cy="431.5" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="41.2" y="433.0" text-anchor="middle" font-size="6" fill="#00ff80">P3</text>
+  <circle cx="55.8" cy="431.5" r="4" fill="#00ff80" opacity="0.7"/>
+  <text x="55.8" y="433.0" text-anchor="middle" font-size="6" fill="#00ff80">P4</text>
+
+  <!-- Start/finish -->
+  <line x1="37.6" y1="407.3" x2="59.4" y2="407.3" stroke="#ffcc00" stroke-width="3"/>
+  <text x="48.5" y="399.3" text-anchor="middle" font-family="monospace" font-size="12" fill="#ffcc00">START</text>
+  <!-- Title -->
+  <text x="10" y="20" font-family="monospace" font-size="14" font-weight="bold" fill="#80c0ff">Cyber Highway</text>
+  <text x="10" y="36" font-family="monospace" font-size="10" fill="#80c0ff">HARD — 2 laps</text>
+</svg>

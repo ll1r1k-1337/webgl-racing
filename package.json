@@ -1,0 +1,20 @@
+{
+  "name": "webgl-racing",
+  "version": "1.0.0",
+  "description": "Retro 80s multiplayer 3D racing game — WebGL + WebSocket LAN play",
+  "main": "server/server.js",
+  "scripts": {
+    "server": "node server/server.js",
+    "client": "npx http-server client -p 3000 -c-1 --cors",
+    "start": "node server/server.js",
+    "test": "node server/test_server.js"
+  },
+  "keywords": ["webgl", "racing", "multiplayer", "websocket", "retro"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "ws": "^8.21.3"
+  }
+}
