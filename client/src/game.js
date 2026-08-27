@@ -450,7 +450,7 @@ function updateLeaderboard() {
   });
 
   // Render
-  let html = '';
+  let html = '<div class="lb-title">RACE POSITION</div>';
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
     const c = e.color
