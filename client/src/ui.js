@@ -1,20 +1,48 @@
 // UI screens: connect, lobby, results, leaderboard — retro 80s pixel aesthetic
 // Each screen is a div toggled by showScreen(). All DOM is created once.
 
-const MAP_INFO = {
-  neon_circuit:   { name: 'Neon Circuit',   difficulty: 'EASY',   laps: 3, color: '#f0f' },
-  desert_drift:   { name: 'Desert Drift',   difficulty: 'MEDIUM', laps: 2, color: '#fa0' },
-  cyber_highway:  { name: 'Cyber Highway',  difficulty: 'HARD',   laps: 2, color: '#0ff' },
-};
+// Map metadata loaded from client/maps/*.json. Each entry: { name, difficulty, laps, color }.
+// `color` accent is derived from theme.ambientColor (single source of truth in JSON).
+const MAP_KEYS = ['neon_circuit', 'desert_drift', 'cyber_highway'];
+const mapInfo = {}; // populated by loadMaps()
+
+function deriveAccent(theme) {
+  const [r, g, b] = theme?.ambientColor || [1, 1, 1];
+  const c = (v) => Math.max(0, Math.min(255, Math.round(v * 255))).toString(16).padStart(2, '0');
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+
+async function loadMaps() {
+  await Promise.all(MAP_KEYS.map(async (key) => {
+    try {
+      const resp = await fetch(`maps/${key}.json`);
+      const json = await resp.json();
+      mapInfo[key] = {
+        name: json.name,
+        difficulty: (json.difficulty || '').toUpperCase(),
+        laps: json.laps,
+        color: deriveAccent(json.theme),
+      };
+    } catch (e) {
+      // Fallback so UI still renders something useful
+      mapInfo[key] = { name: key, difficulty: '', laps: 0, color: '#888' };
+    }
+  }));
+}
+
+export function getMapInfo(key) { return mapInfo[key]; }
+export function getMapName(key) { return mapInfo[key]?.name || key; }
 
 let screens = {};
 let currentScreen = null;
 let _onConnect, _onCreateRoom, _onJoinRoom, _onReady, _onMapSelect, _onBackToMenu, _onDisconnect;
 
-export function createUI() {
+export async function createUI() {
   const root = document.createElement('div');
   root.id = 'ui-root';
   document.body.appendChild(root);
+
+  await loadMaps();
 
   screens.connect = buildConnectScreen();
   screens.lobby = buildLobbyScreen();
@@ -109,7 +137,7 @@ function buildLobbyScreen() {
   `;
   // map thumbnails
   const grid = d.querySelector('#ui-map-grid');
-  for (const [key, info] of Object.entries(MAP_INFO)) {
+  for (const [key, info] of Object.entries(mapInfo)) {
     const card = document.createElement('div');
     card.className = 'ui-map-card';
     card.dataset.map = key;
@@ -257,7 +285,7 @@ export function showLeaderboard(host) {
     // tabs
     if (tabs) {
       tabs.innerHTML = maps.map((m, i) =>
-        `<button class="ui-lb-tab ${i===0?'active':''}" data-map="${m}">${(MAP_INFO[m]?.name || m).toUpperCase()}</button>`
+        `<button class="ui-lb-tab ${i===0?'active':''}" data-map="${m}">${(getMapName(m)).toUpperCase()}</button>`
       ).join('');
       tabs.querySelectorAll('.ui-lb-tab').forEach(btn => {
         btn.onclick = () => {

@@ -200,8 +200,9 @@ import { initGame, destroyGame, getPlayerState, spawnRemoteCar, updateRemoteCar,
          setLeaderboardEl, setLocalPlayerId, setPlayerInfoMap } from './src/game.js';
 import { Network } from './src/network.js';
 import { createUI, showScreen, hideAllScreens, setCallbacks,
-         showConnectError, clearConnectError, updateLobby,
-         showCountdown, showResults, showLeaderboard } from './src/ui.js';
+       showConnectError, clearConnectError, updateLobby,
+       showCountdown, showResults, showLeaderboard,
+       getMapName } from './src/ui.js';
 
 const canvas = document.getElementById('c');
 const hud    = document.getElementById('hud');
@@ -358,7 +359,7 @@ async function handleConnect(host, playerName) {
     net.stopSync();
     lbEl.style.display = 'none';
     const mapName = lobbyState ? lobbyState.map : '';
-    showResults(msg.results, MAP_INFO_NAME(mapName));
+    showResults(msg.results, getMapName(mapName));
     canvas.style.zIndex = '';
   });
 
@@ -393,13 +394,6 @@ function currentScreen() {
   }
   return null;
 }
-
-const MAP_NAMES = {
-  neon_circuit: 'Neon Circuit',
-  desert_drift: 'Desert Drift',
-  cyber_highway: 'Cyber Highway',
-};
-function MAP_INFO_NAME(key) { return MAP_NAMES[key] || key; }
 
 // CRT toggle
 window.addEventListener('keydown', e => {
