@@ -1,7 +1,7 @@
 """Validate all track JSON files against the required schema."""
 import json, os, sys
 
-MAPS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'maps')
+MAPS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client', 'maps')
 
 REQUIRED_TOP = ['name', 'difficulty', 'laps', 'theme', 'trackWidth',
                 'centerline', 'walls', 'startFinish', 'spawnPositions',
@@ -37,6 +37,55 @@ def check_color(arr, label, file):
             err(file, f'{label} values must be numbers')
             return False
     return True
+
+def check_no_self_intersect(pts, file):
+    """Detect self-intersections of a closed polyline in the XZ plane.
+
+    Compares every non-adjacent pair of segments (the last segment is the
+    closing edge from pts[-1] to pts[0]). Adjacent segments that share a
+    vertex are skipped. Emits one error on the first crossing found.
+    """
+    n = len(pts)
+    if n < 4:
+        return  # cannot form a closed loop with <4 vertices
+    coords = [(p['x'], p['z']) for p in pts] + [(pts[0]['x'], pts[0]['z'])]
+    m = len(coords) - 1
+
+    def seg_intersect(a, b):
+        # a, b are 4-tuples (ax1, az1, ax2, az2), (bx1, bz1, bx2, bz2)
+        ax1, az1, ax2, az2 = a
+        bx1, bz1, bx2, bz2 = b
+        d1x, d1z = ax2 - ax1, az2 - az1
+        d2x, d2z = bx2 - bx1, bz2 - bz1
+        denom = d1x * d2z - d1z * d2x
+        if abs(denom) < 1e-9:
+            return False
+        dx, dz = bx1 - ax1, bz1 - az1
+        t = (dx * d2z - dz * d2x) / denom
+        u = (dx * d1z - dz * d1x) / denom
+        return 0 < t < 1 and 0 < u < 1
+
+    for i in range(m):
+        a = (coords[i][0], coords[i][1], coords[i + 1][0], coords[i + 1][1])
+        for j in range(i + 2, m):
+            if i == 0 and j == m - 1:
+                continue  # closing edge and first edge share vertex 0
+            b = (coords[j][0], coords[j][1], coords[j + 1][0], coords[j + 1][1])
+            if seg_intersect(a, b):
+                err(file, f'self-intersection: segment {i}->{i + 1} crosses {j}->{j + 1}')
+                return
+
+def check_closing_distance(pts, track_width, file):
+    """Require distance(last, first) in XZ to be strictly less than trackWidth.
+
+    CatmullRom closed=true interpolates a segment that 'snaps' the gap; a
+    gap >= trackWidth makes that segment cross the track and is unsafe.
+    """
+    p0, pn = pts[0], pts[-1]
+    d = ((p0['x'] - pn['x']) ** 2 + (p0['z'] - pn['z']) ** 2) ** 0.5
+    if d >= track_width:
+        err(file, f'closing distance {d:.2f} >= trackWidth {track_width} '
+                  f'(loop gap too large for CatmullRom closed=true)')
 
 def validate(path):
     fn = os.path.basename(path)
@@ -85,6 +134,7 @@ def validate(path):
             err(fn, 'trackWidth must be a positive number')
 
     # centerline
+    cl_struct_ok = False
     if 'centerline' in data:
         cl = data['centerline']
         if not isinstance(cl, list):
@@ -92,8 +142,16 @@ def validate(path):
         elif len(cl) < 3:
             err(fn, f'centerline must have at least 3 points, got {len(cl)}')
         else:
+            cl_struct_ok = True
             for i, pt in enumerate(cl):
-                check_vec3(pt, f'centerline[{i}]', fn)
+                if not check_vec3(pt, f'centerline[{i}]', fn):
+                    cl_struct_ok = False
+                    break
+
+    # centerline geometry: self-intersections and closing loop distance
+    if cl_struct_ok and isinstance(data.get('trackWidth'), (int, float)):
+        check_no_self_intersect(data['centerline'], fn)
+        check_closing_distance(data['centerline'], data['trackWidth'], fn)
 
     # walls
     if 'walls' in data:
