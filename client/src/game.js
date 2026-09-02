@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Track, testTrack, mapJsonToTrackData } from './track.js';
+import { Track, mapJsonToTrackData } from './track.js';
 import { CarPhysics, createCarMesh, getCarColor } from './car.js';
 import { createMinimap, initMinimapTrack, updateMinimap, destroyMinimap } from './minimap.js';
 
@@ -75,8 +75,8 @@ export function initGame(canvas, hud, trackData, spawnIndex, playerColor) {
 
   camera = new THREE.PerspectiveCamera(60, RES_W / RES_H, 0.5, 500);
 
-  // Track — use provided trackData or fallback to testTrack
-  const td = trackData || testTrack;
+  if (!trackData) throw new Error('initGame: trackData is required');
+  const td = trackData;
   track = new Track(td);
   scene.add(track.createMeshes());
   scene.add(createGrid());

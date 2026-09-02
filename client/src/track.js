@@ -2,32 +2,8 @@ import * as THREE from 'three';
 
 // ---- Track data format ----
 // { name, controlPoints: [x,z][], width, wallHeight, laps, props: {type,x,z,...}[] }
-
-export const testTrack = {
-  name: "Neon Circuit",
-  controlPoints: [
-    [0, 0], [60, 5], [110, -10], [140, -50],
-    [145, -100], [120, -145], [70, -170],
-    [10, -175], [-30, -150], [-55, -110],
-    [-65, -60], [-50, -20], [-20, -5]
-  ],
-  width: 14,
-  wallHeight: 1.2,
-  laps: 3,
-  props: [
-    { type: 'tree', x: 170, z: -50 }, { type: 'tree', x: 165, z: -90 },
-    { type: 'tree', x: 150, z: -130 }, { type: 'tree', x: -85, z: -110 },
-    { type: 'tree', x: -85, z: -60 }, { type: 'tree', x: -75, z: -30 },
-    { type: 'tree', x: 30, z: -200 }, { type: 'tree', x: -10, z: -200 },
-    { type: 'tree', x: 80, z: 30 }, { type: 'tree', x: 120, z: 20 },
-    { type: 'building', x: 30, z: 30, w: 8, h: 12, d: 8 },
-    { type: 'building', x: 70, z: 35, w: 6, h: 8, d: 6 },
-    { type: 'building', x: -40, z: 20, w: 10, h: 15, d: 10 },
-    { type: 'building', x: 50, z: -200, w: 12, h: 10, d: 8 },
-    { type: 'building', x: -90, z: -140, w: 7, h: 18, d: 7 },
-    { type: 'building', x: 170, z: -20, w: 9, h: 14, d: 9 },
-  ]
-};
+// Track data is loaded from /client/maps/*.json via mapJsonToTrackData().
+// No hardcoded fallback — initGame() requires trackData to be passed.
 
 // Convert JSON map file format (MAPS.md schema) to Track constructor data
 export function mapJsonToTrackData(json) {
