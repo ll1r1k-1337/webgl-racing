@@ -31,31 +31,27 @@ export function createMinimap() {
 }
 
 export function initMinimapTrack(track) {
+  // Centerline-only minimap: edges of tight maps (e.g. desert_drift) self-cross
+  // and produced "gibberish" on the canvas. Drawing the centerline as a thick
+  // ribbon keeps the schematic readable on all three maps.
   const edgeL = track.edgeL;
-  const edgeR = track.edgeR;
-
-  // Compute bounding box from all edge points
-  let minX = Infinity, maxX = -Infinity;
-  let minZ = Infinity, maxZ = -Infinity;
-  for (const arr of [edgeL, edgeR]) {
-    for (const p of arr) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.z < minZ) minZ = p.z;
-      if (p.z > maxZ) maxZ = p.z;
-    }
+  const step = 4;
+  const center = [];
+  for (let i = 0; i < edgeL.length; i += step) {
+    center.push({ x: edgeL[i].x, z: edgeL[i].z });
   }
 
-  // Downsample edges for drawing (every 4th point is plenty for 160px)
-  const step = 4;
-  const left = [], right = [];
-  for (let i = 0; i < edgeL.length; i += step) {
-    left.push({ x: edgeL[i].x, z: edgeL[i].z });
-    right.push({ x: edgeR[i].x, z: edgeR[i].z });
+  let minX = Infinity, maxX = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (const p of center) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.z < minZ) minZ = p.z;
+    if (p.z > maxZ) maxZ = p.z;
   }
 
   bounds = { minX, maxX, minZ, maxZ };
-  trackData = { left, right };
+  trackData = { center, width: (track.halfW || 8) * 2 };
 }
 
 function toMinimap(wx, wz) {
@@ -79,33 +75,31 @@ export function updateMinimap(playerPos, playerColor, others) {
   if (!ctx || !trackData || !bounds) return;
   ctx.clearRect(0, 0, SIZE, SIZE);
 
-  // --- Track fill (left edge forward, right edge backward) ---
-  ctx.fillStyle = 'rgba(50,20,80,0.5)';
+  // --- Track centerline (avoids self-intersecting edgeL/edgeR artifacts on tight maps) ---
+  const C = trackData.center;
+  const ringWidth = Math.max(3, Math.round((trackData.width || 16) * (SIZE - PAD * 2) / Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ) / 2));
+  // Filled ribbon along the centerline
+  ctx.strokeStyle = 'rgba(50,20,80,0.5)';
+  ctx.lineWidth = ringWidth * 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  const L = trackData.left, R = trackData.right;
-  for (let i = 0; i < L.length; i++) {
-    const p = toMinimap(L[i].x, L[i].z);
+  for (let i = 0; i < C.length; i++) {
+    const p = toMinimap(C[i].x, C[i].z);
     i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
   }
-  for (let i = R.length - 1; i >= 0; i--) {
-    const p = toMinimap(R[i].x, R[i].z);
-    ctx.lineTo(p.x, p.y);
+  ctx.closePath();
+  ctx.stroke();
+  // Crisp cyan centerline on top
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,255,255,0.55)';
+  ctx.beginPath();
+  for (let i = 0; i < C.length; i++) {
+    const p = toMinimap(C[i].x, C[i].z);
+    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
   }
   ctx.closePath();
-  ctx.fill();
-
-  // --- Track edges ---
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgba(0,255,255,0.45)';
-  for (const edge of [L, R]) {
-    ctx.beginPath();
-    for (let i = 0; i < edge.length; i++) {
-      const p = toMinimap(edge[i].x, edge[i].z);
-      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  }
+  ctx.stroke();
 
   // --- Remote car dots ---
   for (const o of others) {

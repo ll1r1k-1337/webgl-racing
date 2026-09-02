@@ -107,8 +107,8 @@ export class CarPhysics {
     const sf = Math.min(1, this.speed / 15);
     const drift = input.space;
 
-    if (input.left) this.steer = -1;
-    else if (input.right) this.steer = 1;
+    if (input.left) this.steer = 1;
+    else if (input.right) this.steer = -1;
     else this.steer = 0;
 
     let turnMul = this.turnRate * sf;
