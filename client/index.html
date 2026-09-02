@@ -221,7 +221,6 @@ let myPlayerId = null;
 let lobbyState = null;
 
 // ---- Build UI ----
-createUI();
 setCallbacks({
   onConnect:     handleConnect,
   onCreateRoom:  null,
@@ -233,8 +232,10 @@ setCallbacks({
     else showScreen('connect');
   },
   onDisconnect:  () => { net.disconnect(); showScreen('connect'); },
-});
-showScreen('connect');
+  });
+
+  // createUI() is async (loads maps first); wait for it before showing the connect screen
+  createUI().then(() => showScreen('connect'));
 
 // ---- Connect handler ----
 async function handleConnect(host, playerName) {
